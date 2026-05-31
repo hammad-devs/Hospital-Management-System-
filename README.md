@@ -5,7 +5,11 @@ Converted from a monolithic JSX/CLI structure into a clean,
 role-based web application.
 
 ---
+# Install all the libaries used  by using command 
 
+pip install -r requirements.txt 
+
+----
 ## 🗂️ Complete Project Structure
 
 hms_web/
