@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}{{ bill.bill_no }} — HMS{% endblock %}
+{% block topbar_title %}Bill Detail{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ bill.bill_no }}</h1>
+    <p>{{ bill.patient }} — {{ bill.patient_code }}</p>
+  </div>
+  <div class="flex gap-2">
+    {{ bill.status | status_badge | safe }}
+    <a href="{{ url_for('billing.list_bills') }}" class="btn btn-secondary">← Back</a>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
+
+  <!-- Items table -->
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-header">
+      <span class="card-title">📋 Bill Items</span>
+    </div>
+    {% if items %}
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>Type</th><th>Description</th><th>Qty</th>
+              <th>Unit Price</th><th>Total</th></tr>
+        </thead>
+        <tbody>
+          {% for i in items %}
+          <tr>
+            <td><span class="badge badge-blue">{{ i.item_type }}</span></td>
+            <td>{{ i.description }}</td>
+            <td style="font-family:var(--mono); font-size:12px;">{{ i.quantity }}</td>
+            <td style="font-family:var(--mono); font-size:12px;">
+              {{ i.unit_price | currency }}
+            </td>
+            <td style="font-family:var(--mono); font-size:12px; font-weight:600;">
+              {{ i.total_price | currency }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted" style="padding:16px 0;">No items on this bill.</p>
+    {% endif %}
+  </div>
+
+  <!-- Summary + payment -->
+  <div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title" style="margin-bottom:14px;">💰 Summary</div>
+      {% macro srow(label, value, color='') %}
+      <div style="display:flex; justify-content:space-between;
+                  padding:8px 0; border-bottom:1px solid var(--border);
+                  font-size:13px;">
+        <span style="color:var(--muted);">{{ label }}</span>
+        <span style="font-family:var(--mono); {{ 'color:' ~ color if color }}">
+          {{ value }}
+        </span>
+      </div>
+      {% endmacro %}
+
+      {{ srow('Subtotal',   bill.subtotal    | currency) }}
+      {{ srow('Discount',  '-' ~ (bill.discount | currency), 'var(--accent2)') }}
+      {{ srow('Tax',        bill.tax         | currency) }}
+      {{ srow('Total',      bill.total_amount | currency, 'var(--white)') }}
+      {{ srow('Paid',       bill.paid_amount  | currency, 'var(--accent2)') }}
+
+      <div style="display:flex; justify-content:space-between;
+                  padding:10px 0; font-size:14px; font-weight:700;">
+        <span>Balance Due</span>
+        <span style="font-family:var(--mono); color:var(--accent4);">
+          {{ (bill.total_amount - bill.paid_amount) | currency }}
+        </span>
+      </div>
+    </div>
+
+    {% if bill.status not in ['Paid','Cancelled'] %}
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px;">Record Payment</div>
+      <form method="POST"
+            action="{{ url_for('billing.record_payment_route', bill_id=bill.bill_id) }}">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Amount (PKR)</label>
+          <input type="number" name="amount" min="0.01" step="0.50"
+                 placeholder="Enter amount received" required />
+        </div>
+        <button type="submit" class="btn btn-success" style="width:100%;">
+          ✅ Record Payment
+        </button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

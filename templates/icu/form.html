@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}ICU Admission — HMS{% endblock %}
+{% block topbar_title %}ICU Admission{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div><h1>Admit Patient to ICU</h1></div>
+  <a href="{{ url_for('icu.list_icu') }}" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="card" style="max-width:700px;">
+  <form method="POST" action="{{ url_for('icu.new_icu_admission') }}" novalidate>
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Patient *</label>
+        <select name="patient_id" required>
+          <option value="">— Select Patient —</option>
+          {% for p in patients %}
+          <option value="{{ p.patient_id }}">
+            {{ p.full_name }} ({{ p.patient_code }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Attending Doctor *</label>
+        <select name="doctor_id" required>
+          <option value="">— Select Doctor —</option>
+          {% for d in doctors %}
+          <option value="{{ d.doctor_id }}">{{ d.full_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>ICU Bed Number *</label>
+        <input type="text" name="bed_no" placeholder="e.g. ICU-01" required />
+      </div>
+
+      <div class="form-group">
+        <label>Nurse Name</label>
+        <input type="text" name="nurse_name" placeholder="Assigned nurse" />
+      </div>
+
+      <div class="form-group">
+        <label>On Ventilator</label>
+        <select name="ventilator">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select>
+      </div>
+
+      <div class="form-group full-width">
+        <label>Diagnosis / Condition</label>
+        <textarea name="diagnosis" placeholder="Primary diagnosis…"></textarea>
+      </div>
+
+    </div>
+
+    <div class="flex gap-2 mt-2">
+      <button type="submit" class="btn btn-primary">🫀 Admit to ICU</button>
+      <a href="{{ url_for('icu.list_icu') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

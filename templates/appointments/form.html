@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Book Appointment — HMS{% endblock %}
+{% block topbar_title %}Book Appointment{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div><h1>Book New Appointment</h1></div>
+  <a href="{{ url_for('appointments.list_appointments') }}"
+     class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="card" style="max-width:700px;">
+  <form method="POST" action="{{ url_for('appointments.new_appointment') }}" novalidate>
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Patient *</label>
+        <select name="patient_id" required>
+          <option value="">— Select Patient —</option>
+          {% for p in patients %}
+          <option value="{{ p.patient_id }}">
+            {{ p.full_name }} ({{ p.patient_code }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Department *</label>
+        <select name="dept_id" required>
+          <option value="">— Select Department —</option>
+          {% for d in depts %}
+          <option value="{{ d.dept_id }}">{{ d.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {% if current_user.role != 'doctor' %}
+      <div class="form-group">
+        <label>Doctor *</label>
+        <select name="doctor_id" required>
+          <option value="">— Select Doctor —</option>
+          {% for d in doctors %}
+          <option value="{{ d.doctor_id }}">{{ d.full_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <div class="form-group">
+        <label>Appointment Type</label>
+        <select name="appt_type">
+          {% for t in ['OPD','Follow-up','Emergency','Teleconsult'] %}
+          <option value="{{ t }}">{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Date *</label>
+        <input type="date" name="appt_date" required />
+      </div>
+
+      <div class="form-group">
+        <label>Time *</label>
+        <input type="time" name="appt_time" required />
+      </div>
+
+      <div class="form-group full-width">
+        <label>Chief Complaint</label>
+        <textarea name="complaint" placeholder="Brief description of symptoms…"></textarea>
+      </div>
+
+    </div>
+
+    <div class="flex gap-2 mt-2">
+      <button type="submit" class="btn btn-primary">📅 Book Appointment</button>
+      <a href="{{ url_for('appointments.list_appointments') }}"
+         class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

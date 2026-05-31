@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Add Medicine — HMS{% endblock %}
+{% block topbar_title %}Add Medicine{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div><h1>Add New Medicine</h1></div>
+  <a href="{{ url_for('pharmacy.medicines') }}" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="card" style="max-width:600px;">
+  <form method="POST" action="{{ url_for('pharmacy.new_medicine') }}" novalidate>
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Medicine Name *</label>
+        <input type="text" name="name" placeholder="e.g. Metformin 500mg" required />
+      </div>
+
+      <div class="form-group">
+        <label>Category</label>
+        <input type="text" name="category" placeholder="e.g. Antidiabetic" />
+      </div>
+
+      <div class="form-group">
+        <label>Initial Stock</label>
+        <input type="number" name="stock_qty" min="0" value="0" />
+      </div>
+
+      <div class="form-group">
+        <label>Unit</label>
+        <select name="unit">
+          {% for u in ['tablets','capsules','bags','vials','bottles','sachets','injections'] %}
+          <option value="{{ u }}">{{ u }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Unit Price (PKR)</label>
+        <input type="number" name="unit_price" min="0" step="0.50" value="0" />
+      </div>
+
+      <div class="form-group">
+        <label>Reorder Level</label>
+        <input type="number" name="reorder_lvl" min="0" value="20" />
+      </div>
+
+    </div>
+
+    <div class="flex gap-2 mt-2">
+      <button type="submit" class="btn btn-primary">💊 Add Medicine</button>
+      <a href="{{ url_for('pharmacy.medicines') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+<!-- hms_web/templates/patients/list.html -->
+{% extends "base.html" %}
+{% block title %}Patients — HMS{% endblock %}
+{% block topbar_title %}Patient Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Patients</h1>
+    <p>{{ "Your assigned patients" if is_doctor_view else "All registered patients" }}</p>
+  </div>
+  {% if not is_doctor_view or current_user.role == 'doctor' %}
+  <a href="{{ url_for('patients.new_patient') }}" class="btn btn-primary">
+    + Register Patient
+  </a>
+  {% endif %}
+</div>
+
+<!-- Search -->
+<div class="card">
+  <form method="GET" action="{{ url_for('patients.list_patients') }}">
+    <div style="display:flex; gap:10px;">
+      <input type="text" name="q" value="{{ query }}"
+             placeholder="Search by name, patient code, or phone…"
+             style="flex:1;" />
+      <button type="submit" class="btn btn-primary">Search</button>
+      {% if query %}
+      <a href="{{ url_for('patients.list_patients') }}"
+         class="btn btn-secondary">Clear</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Results -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">
+      {% if query %}
+        Results for "{{ query }}" — {{ patients|length }} found
+      {% else %}
+        {{ patients|length }} Patient(s)
+      {% endif %}
+    </span>
+  </div>
+
+  {% if patients %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Full Name</th>
+          <th>Gender</th>
+          <th>Blood Group</th>
+          <th>Phone</th>
+          <th>Registered</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in patients %}
+        <tr>
+          <td style="font-family:var(--mono); font-size:12px; color:var(--accent);">
+            {{ p.patient_code or '—' }}
+          </td>
+          <td>
+            <a href="{{ url_for('patients.patient_detail', patient_id=p.patient_id) }}"
+               style="font-weight:600; color:var(--white);">
+              {{ p.full_name }}
+            </a>
+          </td>
+          <td class="text-muted">{{ p.gender }}</td>
+          <td>
+            <span class="badge badge-blue">{{ p.blood_group }}</span>
+          </td>
+          <td style="font-family:var(--mono); font-size:12px;">{{ p.phone }}</td>
+          <td style="font-size:12px; color:var(--muted);">
+            {{ p.registered_at.strftime('%d %b %Y') if p.registered_at else '—' }}
+          </td>
+          <td>
+            <div class="flex gap-2">
+              <a href="{{ url_for('patients.patient_detail', patient_id=p.patient_id) }}"
+                 class="btn btn-secondary btn-sm">View</a>
+              <a href="{{ url_for('patients.edit_patient', patient_id=p.patient_id) }}"
+                 class="btn btn-secondary btn-sm">Edit</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center; padding:48px 0; color:var(--muted);">
+    <div style="font-size:40px; margin-bottom:10px;">👤</div>
+    <div style="font-size:15px; margin-bottom:6px;">No patients found.</div>
+    {% if query %}
+      <p>Try a different search term.</p>
+    {% else %}
+      <a href="{{ url_for('patients.new_patient') }}"
+         class="btn btn-primary mt-2">Register First Patient</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

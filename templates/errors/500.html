@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="text-align:center; padding: 80px 20px;">
+  <h1 style="font-size:72px; color:var(--accent4);">500</h1>
+  <h2 style="margin-bottom:12px;">Server Error</h2>
+  <p style="color:var(--muted); margin-bottom:24px;">
+    Something went wrong on our end. Please try again.
+  </p>
+  <a href="{{ url_for('dashboard.index') }}"
+     style="color:var(--accent);">← Back to Dashboard</a>
+</div>
+{% endblock %}

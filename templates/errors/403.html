@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="text-align:center; padding: 80px 20px;">
+  <h1 style="font-size:72px; color:var(--accent4);">403</h1>
+  <h2 style="margin-bottom:12px;">Access Denied</h2>
+  <p style="color:var(--muted); margin-bottom:24px;">
+    You do not have permission to view this page.
+  </p>
+  <a href="{{ url_for('dashboard.index') }}"
+     style="color:var(--accent);">← Back to Dashboard</a>
+</div>
+{% endblock %}

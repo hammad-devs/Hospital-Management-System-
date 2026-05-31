@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Admissions — HMS{% endblock %}
+{% block topbar_title %}Ward Admissions{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Admissions</h1>
+    <p>{{ "Your admitted patients" if is_doctor_view else "All ward admissions" }}</p>
+  </div>
+  {% if current_user.role == 'admin' %}
+  <a href="{{ url_for('admissions.new_admission') }}" class="btn btn-primary">
+    + Admit Patient
+  </a>
+  {% endif %}
+</div>
+
+<!-- Status filter -->
+<div class="card">
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    {% for s in ['', 'Active', 'Discharged', 'Transferred'] %}
+    <a href="{{ url_for('admissions.list_admissions', status=s) }}"
+       class="btn btn-sm {{ 'btn-primary' if status_filter == s else 'btn-secondary' }}">
+      {{ s if s else 'All' }}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">{{ admissions|length }} Record(s)</span>
+  </div>
+  {% if admissions %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Patient</th><th>Doctor</th><th>Department</th>
+          <th>Ward/Bed</th><th>Type</th><th>Admitted</th>
+          <th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in admissions %}
+        <tr>
+          <td style="font-family:var(--mono); font-size:12px;">#{{ a.admission_id }}</td>
+          <td>
+            <a href="{{ url_for('patients.patient_detail', patient_id=a.patient_id) }}"
+               style="font-weight:600;">{{ a.patient }}</a>
+            <div style="font-size:11px; color:var(--muted);">{{ a.patient_code }}</div>
+          </td>
+          <td class="text-muted">{{ a.doctor }}</td>
+          <td class="text-muted">{{ a.department }}</td>
+          <td style="font-family:var(--mono); font-size:12px;">
+            {{ a.ward or '—' }}{% if a.bed_no %} / {{ a.bed_no }}{% endif %}
+          </td>
+          <td><span class="badge badge-blue">{{ a.admission_type }}</span></td>
+          <td style="font-size:12px; color:var(--muted);">
+            {{ a.admission_date.strftime('%d %b %Y') if a.admission_date else '—' }}
+          </td>
+          <td>{{ a.status | status_badge | safe }}</td>
+          <td>
+            <div class="flex gap-2">
+              <a href="{{ url_for('admissions.admission_detail', admission_id=a.admission_id) }}"
+                 class="btn btn-secondary btn-sm">View</a>
+              {% if a.status == 'Active' %}
+              <form method="POST"
+                    action="{{ url_for('admissions.discharge', admission_id=a.admission_id) }}"
+                    style="display:inline;"
+                    onsubmit="return confirm('Discharge this patient?')">
+                <input type="hidden" name="notes" value="" />
+                <button class="btn btn-warning btn-sm">Discharge</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center; padding:48px 0; color:var(--muted);">
+    <div style="font-size:40px; margin-bottom:10px;">🛏️</div>
+    <div>No admissions found.</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

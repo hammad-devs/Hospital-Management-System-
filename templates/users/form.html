@@ -1,0 +1,221 @@
+<!-- hms_web/templates/users/form.html -->
+{% extends "base.html" %}
+{% block title %}Create User — HMS{% endblock %}
+{% block topbar_title %}Create New User{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Create New User</h1>
+    <p>Add a new admin, doctor, nurse, or receptionist account</p>
+  </div>
+  <a href="{{ url_for('users.list_users') }}" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="card" style="max-width:680px;">
+  <form method="POST" action="{{ url_for('users.new_user') }}"
+        novalidate onsubmit="return validateForm()">
+
+    <!-- Role selector at top — drives dept visibility -->
+    <div style="margin-bottom:24px; padding:16px 20px;
+                background:var(--surface); border-radius:var(--radius);
+                border:1px solid var(--border);">
+      <label style="display:block; margin-bottom:10px;">Select Role *</label>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        {% for r in roles %}
+        <label style="display:flex; align-items:center; gap:8px;
+                       padding:10px 16px; border-radius:8px;
+                       border:1px solid var(--border);
+                       background:var(--card); cursor:pointer;
+                       transition:all .15s;"
+               id="role-label-{{ r.role_id }}">
+          <input type="radio" name="role_id"
+                 value="{{ r.role_id }}"
+                 {{ 'checked' if form.get('role_id', '') == r.role_id|string }}
+                 onchange="onRoleChange({{ r.role_id }}, '{{ r.role_name }}')"
+                 style="accent-color:var(--accent);" required />
+          <span style="font-size:18px;">
+            {% if r.role_name == 'admin' %}👑
+            {% elif r.role_name == 'doctor' %}👨‍⚕️
+            {% elif r.role_name == 'nurse' %}🩺
+            {% else %}🧑‍💼{% endif %}
+          </span>
+          <span style="font-size:13px; font-weight:600; text-transform:capitalize;">
+            {{ r.role_name }}
+          </span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- User details -->
+    <div style="margin-bottom:24px;">
+      <div style="font-size:11px; font-weight:700; color:var(--muted);
+                  text-transform:uppercase; letter-spacing:.08em;
+                  margin-bottom:14px; padding-bottom:8px;
+                  border-bottom:1px solid var(--border);">
+        Account Details
+      </div>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="username">Username *</label>
+          <input type="text" id="username" name="username"
+                 value="{{ form.get('username','') }}"
+                 placeholder="e.g. dr_sara, nurse_ali, rec_hamza"
+                 required autocomplete="off" />
+        </div>
+
+        <div class="form-group">
+          <label for="full_name">Full Name *</label>
+          <input type="text" id="full_name" name="full_name"
+                 value="{{ form.get('full_name','') }}"
+                 placeholder="e.g. Dr. Sara Ahmed"
+                 required />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email"
+                 value="{{ form.get('email','') }}"
+                 placeholder="user@hospital.com" />
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone</label>
+          <input type="text" id="phone" name="phone"
+                 value="{{ form.get('phone','') }}"
+                 placeholder="03XXXXXXXXX" />
+        </div>
+
+        <!-- Department — shown for doctor/nurse, hidden for admin/receptionist -->
+        <div class="form-group" id="dept-group">
+          <label for="dept_id">Department</label>
+          <select id="dept_id" name="dept_id">
+            <option value="">— None / General —</option>
+            {% for d in depts %}
+            <option value="{{ d.dept_id }}"
+              {{ 'selected' if form.get('dept_id','') == d.dept_id|string }}>
+              {{ d.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Password section -->
+    <div style="margin-bottom:28px;">
+      <div style="font-size:11px; font-weight:700; color:var(--muted);
+                  text-transform:uppercase; letter-spacing:.08em;
+                  margin-bottom:14px; padding-bottom:8px;
+                  border-bottom:1px solid var(--border);">
+        Set Password
+      </div>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="password">Password *</label>
+          <input type="password" id="password" name="password"
+                 placeholder="Minimum 8 characters" required />
+        </div>
+
+        <div class="form-group">
+          <label for="confirm">Confirm Password *</label>
+          <input type="password" id="confirm" name="confirm"
+                 placeholder="Re-enter password" required />
+          <span id="match-msg" style="font-size:12px; margin-top:3px;"></span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Role info box -->
+    <div id="role-info-box"
+         style="display:none; margin-bottom:20px; padding:14px 16px;
+                border-radius:var(--radius); border:1px solid var(--border);
+                background:var(--surface); font-size:13px; color:var(--muted);">
+    </div>
+
+    <div class="flex gap-2">
+      <button type="submit" class="btn btn-primary">✅ Create User</button>
+      <a href="{{ url_for('users.list_users') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const roleInfo = {
+    'admin':        '👑 Admin has full access to everything in the system including billing, ICU, OT, and user management.',
+    'doctor':       '👨‍⚕️ Doctor can manage their own patients, appointments, lab tests and prescriptions. After creating this account, go to Doctors → Add Doctor to set up their profile.',
+    'nurse':        '🩺 Nurse has limited clinical access. They can view patient records and update notes.',
+    'receptionist': '🧑‍💼 Receptionist can register new patients and book appointments. No access to clinical or billing data.'
+  };
+
+  const deptRoles = ['doctor', 'nurse'];
+
+  function onRoleChange(roleId, roleName) {
+    // Show/hide department field
+    const deptGroup = document.getElementById('dept-group');
+    deptGroup.style.display = deptRoles.includes(roleName) ? 'flex' : 'none';
+
+    // Show role info
+    const box = document.getElementById('role-info-box');
+    box.style.display = 'block';
+    box.textContent   = roleInfo[roleName] || '';
+
+    // Highlight selected label
+    document.querySelectorAll('[id^="role-label-"]').forEach(el => {
+      el.style.borderColor = 'var(--border)';
+      el.style.background  = 'var(--card)';
+    });
+    const selected = document.getElementById('role-label-' + roleId);
+    if (selected) {
+      selected.style.borderColor = 'var(--accent)';
+      selected.style.background  = 'rgba(59,130,246,.1)';
+    }
+  }
+
+  // Password match indicator
+  const pwd  = document.getElementById('password');
+  const conf = document.getElementById('confirm');
+  const msg  = document.getElementById('match-msg');
+
+  function checkMatch() {
+    if (!conf.value) { msg.textContent = ''; return; }
+    if (pwd.value === conf.value) {
+      msg.style.color  = '#10b981';
+      msg.textContent  = '✅ Passwords match';
+    } else {
+      msg.style.color  = '#ef4444';
+      msg.textContent  = '❌ Passwords do not match';
+    }
+  }
+  pwd.addEventListener('input',  checkMatch);
+  conf.addEventListener('input', checkMatch);
+
+  function validateForm() {
+    const roleSelected = document.querySelector('input[name="role_id"]:checked');
+    if (!roleSelected) {
+      alert('Please select a role.');
+      return false;
+    }
+    if (pwd.value.length < 8) {
+      alert('Password must be at least 8 characters.');
+      return false;
+    }
+    if (pwd.value !== conf.value) {
+      alert('Passwords do not match.');
+      return false;
+    }
+    return true;
+  }
+
+  // Init — hide dept on load
+  document.getElementById('dept-group').style.display = 'none';
+</script>
+{% endblock %}

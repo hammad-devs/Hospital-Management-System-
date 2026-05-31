@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}New Bill — HMS{% endblock %}
+{% block topbar_title %}New Bill{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div><h1>Create New Bill</h1></div>
+  <a href="{{ url_for('billing.list_bills') }}" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="card" style="max-width:600px;">
+  <form method="POST" action="{{ url_for('billing.new_bill') }}" novalidate>
+    <div class="form-grid" style="grid-template-columns:1fr;">
+
+      <div class="form-group">
+        <label>Patient *</label>
+        <select name="patient_id" required>
+          <option value="">— Select Patient —</option>
+          {% for p in patients %}
+          <option value="{{ p.patient_id }}">{{ p.full_name }} ({{ p.patient_code }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Link Admission (optional)</label>
+        <select name="admission_id">
+          <option value="">— OPD / No Admission —</option>
+          {% for a in admissions %}
+          <option value="{{ a.admission_id }}">
+            #{{ a.admission_id }} — {{ a.patient }} ({{ a.department }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+    </div>
+
+    <div class="flex gap-2 mt-2">
+      <button type="submit" class="btn btn-primary">💰 Create Bill</button>
+      <a href="{{ url_for('billing.list_bills') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

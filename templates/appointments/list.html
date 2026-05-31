@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Appointments — HMS{% endblock %}
+{% block topbar_title %}Appointments{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Appointments</h1>
+    <p>{{ "Your appointments" if is_doctor_view else "Manage all appointments" }}</p>
+  </div>
+  <a href="{{ url_for('appointments.new_appointment') }}" class="btn btn-primary">
+    + Book Appointment
+  </a>
+</div>
+
+{% if not is_doctor_view %}
+<div class="card">
+  <form method="GET" action="{{ url_for('appointments.list_appointments') }}">
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+
+      <div class="form-group" style="margin:0; flex:0 0 160px;">
+        <label>Filter By</label>
+        <select name="filter" onchange="toggleFilters(this.value)">
+          <option value="today"   {{ 'selected' if filter_by=='today' }}>Today</option>
+          <option value="date"    {{ 'selected' if filter_by=='date' }}>By Date</option>
+          <option value="doctor"  {{ 'selected' if filter_by=='doctor' }}>By Doctor</option>
+          <option value="patient" {{ 'selected' if filter_by=='patient' }}>By Patient</option>
+        </select>
+      </div>
+
+      <div id="date-filter" class="form-group"
+           style="margin:0; flex:0 0 160px;
+                  {{ 'display:none' if filter_by != 'date' }}">
+        <label>Date</label>
+        <input type="date" name="date" value="{{ date_param }}" />
+      </div>
+
+      <div id="doctor-filter" class="form-group"
+           style="margin:0; flex:0 0 220px;
+                  {{ 'display:none' if filter_by != 'doctor' }}">
+        <label>Doctor</label>
+        <select name="doctor_id">
+          <option value="">— All Doctors —</option>
+          {% for d in doctors %}
+          <option value="{{ d.doctor_id }}"
+            {{ 'selected' if doc_param == d.doctor_id }}>
+            {{ d.full_name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div id="patient-filter" class="form-group"
+           style="margin:0; flex:0 0 220px;
+                  {{ 'display:none' if filter_by != 'patient' }}">
+        <label>Patient</label>
+        <select name="patient_id">
+          <option value="">— All Patients —</option>
+          {% for p in patients %}
+          <option value="{{ p.patient_id }}"
+            {{ 'selected' if pat_param == p.patient_id }}>
+            {{ p.full_name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary"
+              style="align-self:flex-end;">Apply</button>
+      <a href="{{ url_for('appointments.list_appointments') }}"
+         class="btn btn-secondary" style="align-self:flex-end;">Reset</a>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">{{ appointments|length }} Appointment(s)</span>
+  </div>
+  {% if appointments %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Patient</th><th>Doctor</th>
+          <th>Date</th><th>Time</th><th>Type</th>
+          <th>Complaint</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in appointments %}
+        <tr>
+          <td style="font-family:var(--mono); font-size:12px;">#{{ a.appt_id }}</td>
+          <td>
+            <a href="{{ url_for('patients.patient_detail', patient_id=a.patient_id) }}"
+               style="font-weight:600;">{{ a.patient }}</a>
+          </td>
+          <td class="text-muted">{{ a.doctor }}</td>
+          <td style="font-size:12px;">{{ a.appt_date }}</td>
+          <td style="font-family:var(--mono); font-size:12px;">{{ a.appt_time }}</td>
+          <td><span class="badge badge-blue">{{ a.appt_type }}</span></td>
+          <td style="font-size:12px; color:var(--muted);">
+            {{ (a.chief_complaint or '—')[:30] }}
+          </td>
+          <td>{{ a.status | status_badge | safe }}</td>
+          <td>
+            {% if a.status == 'Scheduled' %}
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <form method="POST"
+                    action="{{ url_for('appointments.update_status', appt_id=a.appt_id) }}"
+                    style="display:inline;">
+                <input type="hidden" name="status" value="Completed" />
+                <button class="btn btn-success btn-sm">✅ Done</button>
+              </form>
+              <form method="POST"
+                    action="{{ url_for('appointments.update_status', appt_id=a.appt_id) }}"
+                    style="display:inline;">
+                <input type="hidden" name="status" value="Cancelled" />
+                <button class="btn btn-danger btn-sm">✕</button>
+              </form>
+            </div>
+            {% else %}
+            <span class="text-muted" style="font-size:12px;">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center; padding:48px 0; color:var(--muted);">
+    <div style="font-size:40px; margin-bottom:10px;">📅</div>
+    <div>No appointments found.</div>
+    <a href="{{ url_for('appointments.new_appointment') }}"
+       class="btn btn-primary mt-2">Book Appointment</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function toggleFilters(val) {
+  ['date','doctor','patient'].forEach(f => {
+    document.getElementById(f+'-filter').style.display =
+      val === f ? 'flex' : 'none';
+  });
+}
+</script>
+{% endblock %}

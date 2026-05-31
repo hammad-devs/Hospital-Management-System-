@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Admission #{{ admission.admission_id }} — HMS{% endblock %}
+{% block topbar_title %}Admission Detail{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Admission #{{ admission.admission_id }}</h1>
+    <p>{{ admission.patient }} — {{ admission.patient_code }}</p>
+  </div>
+  <div class="flex gap-2">
+    {% if admission.status == 'Active' %}
+    <form method="POST"
+          action="{{ url_for('admissions.discharge', admission_id=admission.admission_id) }}"
+          onsubmit="return confirm('Discharge this patient?')">
+      <input type="hidden" name="notes" value="" />
+      <button class="btn btn-warning">🏥 Discharge</button>
+    </form>
+    {% endif %}
+    <a href="{{ url_for('admissions.list_admissions') }}"
+       class="btn btn-secondary">← Back</a>
+  </div>
+</div>
+
+<div class="card">
+  {% macro row(label, value) %}
+  <tr>
+    <td style="width:30%; color:var(--muted); font-size:12px; padding:10px 0;
+               text-transform:uppercase; letter-spacing:.06em; font-weight:600;">
+      {{ label }}
+    </td>
+    <td style="font-size:14px; padding:10px 0;">{{ value or '—' }}</td>
+  </tr>
+  {% endmacro %}
+
+  <table>
+    <tbody>
+      {{ row('Patient',        admission.patient ~ ' (' ~ admission.patient_code ~ ')') }}
+      {{ row('Doctor',         admission.doctor) }}
+      {{ row('Department',     admission.department) }}
+      {{ row('Ward / Bed',     (admission.ward ~ ' / ' ~ admission.bed_no) if admission.ward and admission.bed_no else (admission.ward or admission.bed_no)) }}
+      {{ row('Admission Type', admission.admission_type) }}
+      {{ row('Diagnosis',      admission.diagnosis) }}
+      {{ row('Admitted On',    admission.admission_date) }}
+      {{ row('Discharged On',  admission.discharge_date) }}
+      {{ row('Notes',          admission.notes) }}
+    </tbody>
+  </table>
+  <div class="mt-2">
+    {{ admission.status | status_badge | safe }}
+  </div>
+</div>
+{% endblock %}

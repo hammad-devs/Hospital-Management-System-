@@ -1,0 +1,153 @@
+<!-- hms_web/templates/patients/form.html -->
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if action=='edit' else 'Register' }} Patient — HMS{% endblock %}
+{% block topbar_title %}{{ 'Edit' if action=='edit' else 'Register' }} Patient{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ 'Edit Patient' if action=='edit' else 'Register New Patient' }}</h1>
+    <p>{{ 'Update patient contact and medical information.' if action=='edit'
+          else 'Fill in patient details to register them in the system.' }}</p>
+  </div>
+  <a href="{{ url_for('patients.list_patients') }}" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="card">
+  <form method="POST"
+        action="{{ url_for('patients.edit_patient', patient_id=patient.patient_id)
+                  if action=='edit'
+                  else url_for('patients.new_patient') }}"
+        novalidate>
+
+    <!-- Section: Personal -->
+    <div style="margin-bottom:24px;">
+      <div style="font-size:12px; font-weight:700; color:var(--muted);
+                  text-transform:uppercase; letter-spacing:.08em;
+                  margin-bottom:14px; padding-bottom:8px;
+                  border-bottom:1px solid var(--border);">
+        Personal Information
+      </div>
+      <div class="form-grid">
+
+        {% if action == 'new' %}
+        <div class="form-group">
+          <label for="full_name">Full Name *</label>
+          <input type="text" id="full_name" name="full_name"
+                 placeholder="Patient full name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="dob">Date of Birth</label>
+          <input type="date" id="dob" name="dob" />
+        </div>
+
+        <div class="form-group">
+          <label for="gender">Gender *</label>
+          <select id="gender" name="gender" required>
+            <option value="">— Select —</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="blood_group">Blood Group</label>
+          <select id="blood_group" name="blood_group">
+            {% for bg in ['A+','A-','B+','B-','AB+','AB-','O+','O-','Unknown'] %}
+            <option value="{{ bg }}">{{ bg }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+          <label for="phone">Phone Number *</label>
+          <input type="text" id="phone" name="phone"
+                 value="{{ patient.phone if patient else '' }}"
+                 placeholder="03XXXXXXXXX" required />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email"
+                 value="{{ patient.email if patient else '' }}"
+                 placeholder="patient@email.com" />
+        </div>
+
+        <div class="form-group full-width">
+          <label for="address">Address</label>
+          <textarea id="address" name="address"
+                    placeholder="Street, City, Province">{{ patient.address if patient else '' }}</textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Section: Emergency Contact -->
+    {% if action == 'new' %}
+    <div style="margin-bottom:24px;">
+      <div style="font-size:12px; font-weight:700; color:var(--muted);
+                  text-transform:uppercase; letter-spacing:.08em;
+                  margin-bottom:14px; padding-bottom:8px;
+                  border-bottom:1px solid var(--border);">
+        Emergency Contact
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="ec_name">Contact Name</label>
+          <input type="text" id="ec_name" name="ec_name"
+                 placeholder="Emergency contact name" />
+        </div>
+        <div class="form-group">
+          <label for="ec_phone">Contact Phone</label>
+          <input type="text" id="ec_phone" name="ec_phone"
+                 placeholder="03XXXXXXXXX" />
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Section: Medical -->
+    <div style="margin-bottom:28px;">
+      <div style="font-size:12px; font-weight:700; color:var(--muted);
+                  text-transform:uppercase; letter-spacing:.08em;
+                  margin-bottom:14px; padding-bottom:8px;
+                  border-bottom:1px solid var(--border);">
+        Medical Information
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="allergies">Known Allergies</label>
+          <input type="text" id="allergies" name="allergies"
+                 value="{{ patient.allergies if patient else 'None' }}"
+                 placeholder="e.g. Penicillin, Sulfa drugs" />
+        </div>
+        <div class="form-group">
+          <label for="chronic">Chronic Conditions</label>
+          <input type="text" id="chronic" name="chronic"
+                 value="{{ patient.chronic_conditions if patient else 'None' }}"
+                 placeholder="e.g. Diabetes, Hypertension" />
+        </div>
+        <div class="form-group">
+          <label for="insurance">Insurance Number</label>
+          <input type="text" id="insurance" name="insurance"
+                 value="{{ patient.insurance_no if patient else '' }}"
+                 placeholder="INS-XXXXXX" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        {{ '💾 Save Changes' if action=='edit' else '✅ Register Patient' }}
+      </button>
+      <a href="{{ url_for('patients.list_patients') }}"
+         class="btn btn-secondary">Cancel</a>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

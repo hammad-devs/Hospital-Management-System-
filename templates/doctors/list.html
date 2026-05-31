@@ -1,0 +1,89 @@
+<!-- hms_web/templates/doctors/list.html -->
+{% extends "base.html" %}
+{% block title %}Doctors — HMS{% endblock %}
+{% block topbar_title %}Doctor Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Doctors</h1>
+    <p>All active medical staff</p>
+  </div>
+  {% if current_user.role == 'admin' %}
+  <a href="{{ url_for('doctors.new_doctor') }}" class="btn btn-primary">
+    + Add Doctor
+  </a>
+  {% endif %}
+</div>
+
+<!-- Department filter -->
+<div class="card">
+  <form method="GET" action="{{ url_for('doctors.list_doctors') }}">
+    <div style="display:flex; gap:10px; align-items:center;">
+      <select name="dept_id" style="width:220px;">
+        <option value="">All Departments</option>
+        {% for d in departments %}
+        <option value="{{ d.dept_id }}"
+          {{ 'selected' if selected_dept == d.dept_id }}>
+          {{ d.name }}
+        </option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary">Filter</button>
+      {% if selected_dept %}
+      <a href="{{ url_for('doctors.list_doctors') }}"
+         class="btn btn-secondary">Clear</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Doctors grid -->
+{% if doctors %}
+<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+            gap:16px;">
+  {% for d in doctors %}
+  <div class="card" style="margin-bottom:0; padding:20px;">
+    <div style="display:flex; align-items:flex-start;
+                justify-content:space-between; margin-bottom:12px;">
+      <div>
+        <div style="font-size:15px; font-weight:700; color:var(--white);">
+          {{ d.full_name }}
+        </div>
+        <div style="font-size:12px; color:var(--accent); margin-top:2px;">
+          {{ d.department }}
+        </div>
+      </div>
+      <span style="font-size:28px;">👨‍⚕️</span>
+    </div>
+
+    <table style="width:100%; margin-bottom:14px;">
+      {% macro drow(label, val) %}
+      <tr>
+        <td style="color:var(--muted); font-size:11px; text-transform:uppercase;
+                   letter-spacing:.06em; padding:4px 0; width:45%;">
+          {{ label }}
+        </td>
+        <td style="font-size:13px; padding:4px 0;">{{ val or '—' }}</td>
+      </tr>
+      {% endmacro %}
+      {{ drow('Specialization', d.specialization) }}
+      {{ drow('Qualification',  d.qualification) }}
+      {{ drow('Experience',     d.experience_years ~ ' yrs' if d.experience_years else None) }}
+      {{ drow('Fee',            d.consultation_fee | currency) }}
+    </table>
+
+    <a href="{{ url_for('doctors.doctor_detail', doctor_id=d.doctor_id) }}"
+       class="btn btn-secondary btn-sm" style="width:100%; text-align:center;">
+      View Profile
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card" style="text-align:center; padding:48px 0; color:var(--muted);">
+  <div style="font-size:40px; margin-bottom:10px;">👨‍⚕️</div>
+  <div>No doctors found.</div>
+</div>
+{% endif %}
+{% endblock %}

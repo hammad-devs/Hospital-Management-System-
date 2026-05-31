@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Admit Patient — HMS{% endblock %}
+{% block topbar_title %}Admit Patient{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div><h1>Admit New Patient</h1></div>
+  <a href="{{ url_for('admissions.list_admissions') }}"
+     class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="card" style="max-width:700px;">
+  <form method="POST" action="{{ url_for('admissions.new_admission') }}" novalidate>
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label for="patient_id">Patient *</label>
+        <select id="patient_id" name="patient_id" title="Patient" required>
+          <option value="">— Select Patient —</option>
+          {% for p in patients %}
+          <option value="{{ p.patient_id }}">
+            {{ p.full_name }} ({{ p.patient_code }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="dept_id">Department *</label>
+        <select id="dept_id" name="dept_id" title="Department" required>
+          <option value="">— Select Department —</option>
+          {% for d in depts %}
+          <option value="{{ d.dept_id }}">{{ d.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {% if current_user.role != 'doctor' %}
+      <div class="form-group">
+        <label for="doctor_id">Admitting Doctor *</label>
+        <select id="doctor_id" name="doctor_id" title="Admitting Doctor" required>
+          <option value="">— Select Doctor —</option>
+          {% for d in doctors %}
+          <option value="{{ d.doctor_id }}">{{ d.full_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <div class="form-group">
+        <label for="admission_type">Admission Type</label>
+        <select id="admission_type" name="admission_type" title="Admission Type">
+          <option value="Elective">Elective</option>
+          <option value="Emergency">Emergency</option>
+          <option value="Transfer">Transfer</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="ward">Ward</label>
+        <input id="ward" type="text" name="ward" placeholder="e.g. Ward A" />
+      </div>
+
+      <div class="form-group">
+        <label for="bed_no">Bed Number</label>
+        <input id="bed_no" type="text" name="bed_no" placeholder="e.g. A-101" />
+      </div>
+
+      <div class="form-group full-width">
+        <label for="diagnosis">Diagnosis / Reason</label>
+        <textarea id="diagnosis" name="diagnosis"
+                  placeholder="Primary diagnosis or reason for admission…"></textarea>
+      </div>
+
+    </div>
+
+    <div class="flex gap-2 mt-2">
+      <button type="submit" class="btn btn-primary">🛏️ Admit Patient</button>
+      <a href="{{ url_for('admissions.list_admissions') }}"
+         class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

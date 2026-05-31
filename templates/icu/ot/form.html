@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}New OT Booking — HMS{% endblock %}
+{% block topbar_title %}OT Booking{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div><h1>New OT Booking</h1></div>
+  <a href="{{ url_for('ot.list_ot') }}" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="card" style="max-width:700px;">
+  <form method="POST" action="{{ url_for('ot.new_ot_booking') }}" novalidate>
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Patient *</label>
+        <select name="patient_id" required>
+          <option value="">— Select Patient —</option>
+          {% for p in patients %}
+          <option value="{{ p.patient_id }}">{{ p.full_name }} ({{ p.patient_code }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Surgeon *</label>
+        <select name="doctor_id" required>
+          <option value="">— Select Surgeon —</option>
+          {% for d in doctors %}
+          <option value="{{ d.doctor_id }}">{{ d.full_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>OT Number *</label>
+        <input type="text" name="ot_no" placeholder="e.g. OT-1" required />
+      </div>
+
+      <div class="form-group">
+        <label>Anesthesia Type</label>
+        <select name="anesthesia">
+          {% for a in ['General','Local','Spinal','Epidural'] %}
+          <option value="{{ a }}">{{ a }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Scheduled Date *</label>
+        <input type="date" name="scheduled_date" required />
+      </div>
+
+      <div class="form-group">
+        <label>Scheduled Time *</label>
+        <input type="time" name="scheduled_time" required />
+      </div>
+
+      <div class="form-group">
+        <label>Duration (hrs)</label>
+        <input type="number" name="duration_hrs" min="0.5" step="0.5" value="1.0" />
+      </div>
+
+      <div class="form-group full-width">
+        <label>Procedure Name *</label>
+        <input type="text" name="procedure_name"
+               placeholder="e.g. Coronary Angioplasty" required />
+      </div>
+
+    </div>
+
+    <div class="flex gap-2 mt-2">
+      <button type="submit" class="btn btn-primary">🩺 Book OT</button>
+      <a href="{{ url_for('ot.list_ot') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

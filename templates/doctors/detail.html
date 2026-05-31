@@ -1,0 +1,84 @@
+<!-- hms_web/templates/doctors/detail.html -->
+{% extends "base.html" %}
+{% block title %}{{ doctor.full_name }} — HMS{% endblock %}
+{% block topbar_title %}Doctor Profile{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ doctor.full_name }}</h1>
+    <p>{{ doctor.department }} — {{ doctor.specialization }}</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="{{ url_for('doctors.set_schedule', doctor_id=doctor.doctor_id) }}"
+       class="btn btn-secondary">🗓️ Schedule</a>
+    <a href="{{ url_for('doctors.list_doctors') }}"
+       class="btn btn-secondary">← Back</a>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-header">
+      <span class="card-title">👨‍⚕️ Professional Details</span>
+    </div>
+    <table>
+      <tbody>
+        {% macro row(label, value) %}
+        <tr>
+          <td style="width:40%; color:var(--muted); font-size:12px;
+                     padding:8px 0; text-transform:uppercase;
+                     letter-spacing:.06em; font-weight:600;">{{ label }}</td>
+          <td style="font-size:13.5px; padding:8px 0;">{{ value or '—' }}</td>
+        </tr>
+        {% endmacro %}
+        {{ row('Department',     doctor.department) }}
+        {{ row('Specialization', doctor.specialization) }}
+        {{ row('Qualification',  doctor.qualification) }}
+        {{ row('Experience',     doctor.experience_years ~ ' years' if doctor.experience_years else None) }}
+        {{ row('License No',     doctor.license_no) }}
+        {{ row('Consult Fee',    doctor.consultation_fee | currency) }}
+        {{ row('Joined Date',    doctor.joined_date) }}
+        {{ row('Email',          doctor.email) }}
+        {{ row('Phone',          doctor.phone) }}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-header">
+      <span class="card-title">🗓️ Weekly Schedule</span>
+      <a href="{{ url_for('doctors.set_schedule', doctor_id=doctor.doctor_id) }}"
+         class="btn btn-secondary btn-sm">Edit</a>
+    </div>
+    {% if schedule %}
+    <table>
+      <thead>
+        <tr>
+          <th>Day</th><th>Start</th><th>End</th><th>Max Patients</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in schedule %}
+        <tr>
+          <td style="font-weight:600;">{{ s.day_of_week }}</td>
+          <td style="font-family:var(--mono); font-size:12px;">{{ s.start_time }}</td>
+          <td style="font-family:var(--mono); font-size:12px;">{{ s.end_time }}</td>
+          <td>{{ s.max_patients }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div style="text-align:center; padding:30px 0; color:var(--muted);">
+      <div style="font-size:28px; margin-bottom:8px;">🗓️</div>
+      <div>No schedule set.</div>
+      <a href="{{ url_for('doctors.set_schedule', doctor_id=doctor.doctor_id) }}"
+         class="btn btn-primary btn-sm mt-2">Set Schedule</a>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

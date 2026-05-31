@@ -1,0 +1,78 @@
+<!-- hms_web/templates/doctors/schedule.html -->
+{% extends "base.html" %}
+{% block title %}Schedule — {{ doctor.full_name }}{% endblock %}
+{% block topbar_title %}Doctor Schedule{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ doctor.full_name }}'s Schedule</h1>
+    <p>{{ doctor.department }}</p>
+  </div>
+  <a href="{{ url_for('doctors.doctor_detail', doctor_id=doctor.doctor_id) }}"
+     class="btn btn-secondary">← Back</a>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-header">
+      <span class="card-title">➕ Add / Update Slot</span>
+    </div>
+    <form method="POST"
+          action="{{ url_for('doctors.set_schedule', doctor_id=doctor.doctor_id) }}">
+      <div class="form-grid" style="grid-template-columns:1fr;">
+        <div class="form-group">
+          <label>Day *</label>
+          <select name="day" required>
+            {% for day in ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] %}
+            <option value="{{ day }}">{{ day }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Start Time *</label>
+          <input type="time" name="start_time" required />
+        </div>
+        <div class="form-group">
+          <label>End Time *</label>
+          <input type="time" name="end_time" required />
+        </div>
+        <div class="form-group">
+          <label>Max Patients</label>
+          <input type="number" name="max_patients" min="1" max="100" value="20" />
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary mt-2">💾 Save Slot</button>
+    </form>
+  </div>
+
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-header">
+      <span class="card-title">📋 Current Schedule</span>
+    </div>
+    {% if schedule %}
+    <table>
+      <thead>
+        <tr><th>Day</th><th>Start</th><th>End</th><th>Max Patients</th></tr>
+      </thead>
+      <tbody>
+        {% for s in schedule %}
+        <tr>
+          <td style="font-weight:600;">{{ s.day_of_week }}</td>
+          <td style="font-family:var(--mono); font-size:12px;">{{ s.start_time }}</td>
+          <td style="font-family:var(--mono); font-size:12px;">{{ s.end_time }}</td>
+          <td>{{ s.max_patients }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div style="text-align:center; padding:30px 0; color:var(--muted);">
+      No schedule set yet. Add slots on the left.
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

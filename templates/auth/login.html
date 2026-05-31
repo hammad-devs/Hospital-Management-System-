@@ -1,0 +1,306 @@
+<!-- hms_web/templates/auth/login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Hospital Management System</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@600;700&display=swap"
+        rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0a0f1a;
+      --surface: #111827;
+      --card:    #1a2235;
+      --border:  #243048;
+      --accent:  #3b82f6;
+      --accent4: #ef4444;
+      --accent2: #10b981;
+      --accent3: #f59e0b;
+      --text:    #e2e8f0;
+      --muted:   #64748b;
+      --white:   #f8fafc;
+      --sans:    'DM Sans', sans-serif;
+      --mono:    'DM Mono', monospace;
+      --serif:   'Playfair Display', serif;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* Background grid pattern */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(59,130,246,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59,130,246,.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .login-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    /* Brand header */
+    .brand {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .brand-logo {
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    margin-bottom: 1px;
+}
+    .brand-title {
+      font-family: var(--serif);
+      font-size: 26px;
+      color: var(--white);
+      line-height: 1.2;
+    }
+    .brand-sub {
+      font-size: 15px;
+      color: var(--muted);
+      margin-top: 6px;
+      font-family: var(--mono);
+    }
+
+    /* Card */
+    .login-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 32px 36px;
+      box-shadow: 0 24px 60px rgba(0,0,0,.4);
+    }
+
+    .login-card h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+    .login-card .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 26px;
+    }
+
+    /* Flash messages */
+    .flash {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 18px;
+      border: 1px solid transparent;
+    }
+    .flash-danger  {
+      background: rgba(239,68,68,.1);
+      border-color: rgba(239,68,68,.25);
+      color: #ef4444;
+    }
+    .flash-warning {
+      background: rgba(245,158,11,.1);
+      border-color: rgba(245,158,11,.25);
+      color: #f59e0b;
+    }
+    .flash-success {
+      background: rgba(16,185,129,.1);
+      border-color: rgba(16,185,129,.25);
+      color: #10b981;
+    }
+    .flash-info {
+      background: rgba(59,130,246,.1);
+      border-color: rgba(59,130,246,.25);
+      color: #3b82f6;
+    }
+
+    /* Form */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 16px;
+    }
+    label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    input {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: var(--sans);
+      font-size: 14px;
+      width: 100%;
+      outline: none;
+      transition: border .2s, box-shadow .2s;
+    }
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+    }
+    input::placeholder { color: var(--muted); font-size: 13px; }
+
+    /* Password wrapper */
+    .password-wrapper {
+      position: relative;
+    }
+    .password-wrapper input {
+      padding-right: 42px;
+    }
+    .toggle-pw {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0;
+      line-height: 1;
+    }
+    .toggle-pw:hover { color: var(--text); }
+
+    /* Submit button */
+    .btn-login {
+      width: 100%;
+      padding: 11px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+      margin-top: 8px;
+    }
+    .btn-login:hover   { background: #2563eb; }
+    .btn-login:active  { transform: scale(.98); }
+
+
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="login-wrapper">
+
+  <!-- Brand -->
+  <div class="brand">
+  <img src="{{ url_for('static', filename='images/logo.png') }}" 
+     alt="UNI Logo"
+     class="brand-logo">
+    <div class="brand-title">Login Portal</div>
+    <div class="brand-sub">Hospital Management System</div>
+    <div  class="brand-sub">DBMS PBL</div>
+  </div>
+
+  <!-- Card -->
+  <div class="login-card">
+    <h2>Welcome back</h2>
+    <p class="subtitle">Sign in to access your portal</p>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">
+            {% if category == 'success' %}✅
+            {% elif category == 'danger' %}❌
+            {% elif category == 'warning' %}⚠️
+            {% else %}ℹ️{% endif %}
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Form -->
+    <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          placeholder="Enter your username"
+          autocomplete="username"
+          required
+          autofocus
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-wrapper">
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            required
+          />
+          <button type="button" class="toggle-pw"
+                  onclick="togglePassword()" title="Show/hide password">
+            👁️
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login">Sign In →</button>
+
+    </form>
+  </div>
+
+  
+
+</div>
+
+<script>
+  function togglePassword() {
+    const input = document.getElementById('password');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  }
+</script>
+
+</body>
+</html>

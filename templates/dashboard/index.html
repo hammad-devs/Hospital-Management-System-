@@ -1,0 +1,483 @@
+<!-- hms_web/templates/dashboard/index.html -->
+{% extends "base.html" %}
+
+{% block title %}Dashboard — HMS{% endblock %}
+{% block topbar_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- ══════════════════════════════════════════
+     ADMIN DASHBOARD
+══════════════════════════════════════════════ -->
+{% if current_user.role == 'admin' %}
+
+  <div class="page-header">
+    <div>
+      <h1>Good day, {{ current_user.full_name }} 👋</h1>
+      <p>Here's what's happening in the hospital today.</p>
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="stats-grid">
+
+    <div class="stat-card" style="border-top: 3px solid var(--accent);">
+      <div class="stat-label">Total Patients</div>
+      <div class="stat-value">{{ stats.total_patients }}</div>
+      <div class="stat-sub">Registered</div>
+    </div>
+
+    <div class="stat-card" style="border-top: 3px solid var(--accent2);">
+      <div class="stat-label">Active Admissions</div>
+      <div class="stat-value">{{ stats.active_admissions }}</div>
+      <div class="stat-sub">Currently admitted</div>
+    </div>
+
+    <div class="stat-card" style="border-top: 3px solid var(--accent3);">
+      <div class="stat-label">Today's Appointments</div>
+      <div class="stat-value">{{ stats.today_appointments }}</div>
+      <div class="stat-sub">Scheduled today</div>
+    </div>
+
+    <div class="stat-card" style="border-top: 3px solid #8b5cf6;">
+      <div class="stat-label">Active Doctors</div>
+      <div class="stat-value">{{ stats.total_doctors }}</div>
+      <div class="stat-sub">On staff</div>
+    </div>
+
+    <div class="stat-card" style="border-top: 3px solid var(--accent4);">
+      <div class="stat-label">ICU Patients</div>
+      <div class="stat-value">{{ stats.icu_patients }}</div>
+      <div class="stat-sub">Active ICU beds</div>
+    </div>
+
+    <div class="stat-card" style="border-top: 3px solid var(--accent3);">
+      <div class="stat-label">Pending Lab Tests</div>
+      <div class="stat-value">{{ stats.pending_lab_tests }}</div>
+      <div class="stat-sub">Awaiting results</div>
+    </div>
+
+    <div class="stat-card" style="border-top: 3px solid var(--accent2);">
+      <div class="stat-label">Pending Bills</div>
+      <div class="stat-value">{{ stats.pending_bills }}</div>
+      <div class="stat-sub">Unpaid / partial</div>
+    </div>
+
+  </div>
+
+  <!-- Row 1: Today's Appointments + ICU -->
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
+
+    <!-- Today's Appointments -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-header">
+        <span class="card-title">📅 Today's Appointments</span>
+        <a href="{{ url_for('appointments.list_appointments') }}"
+           class="btn btn-secondary btn-sm">View All</a>
+      </div>
+      {% if today_appts %}
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Time</th>
+                <th>Type</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in today_appts[:6] %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('patients.patient_detail', patient_id=a.patient_id) }}">
+                    {{ a.patient }}
+                  </a>
+                </td>
+                <td class="text-muted">{{ a.doctor }}</td>
+                <td style="font-family:var(--mono); font-size:12px;">
+                  {{ a.appt_time }}
+                </td>
+                <td>
+                  <span class="badge badge-blue">{{ a.appt_type }}</span>
+                </td>
+                <td>{{ a.status | status_badge | safe }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="text-align:center; padding:30px 0; color:var(--muted);">
+          <div style="font-size:32px; margin-bottom:8px;">📭</div>
+          <div>No appointments scheduled for today.</div>
+          <a href="{{ url_for('appointments.new_appointment') }}"
+             class="btn btn-primary btn-sm mt-2">Book Appointment</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Active ICU -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-header">
+        <span class="card-title">🫀 ICU — Active Patients</span>
+        <a href="{{ url_for('icu.list_icu') }}"
+           class="btn btn-secondary btn-sm">View All</a>
+      </div>
+      {% if icu_patients %}
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Bed</th>
+                <th>Doctor</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for i in icu_patients[:6] %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('patients.patient_detail', patient_id=i.patient_id) }}">
+                    {{ i.patient }}
+                  </a>
+                </td>
+                <td style="font-family:var(--mono); font-size:12px;">
+                  {{ i.bed_no }}
+                </td>
+                <td class="text-muted">{{ i.doctor }}</td>
+                <td>{{ i.status | status_badge | safe }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="text-align:center; padding:30px 0; color:var(--muted);">
+          <div style="font-size:32px; margin-bottom:8px;">✅</div>
+          <div>No active ICU patients.</div>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Row 2: Active Admissions + Low Stock -->
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+
+    <!-- Active Admissions -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-header">
+        <span class="card-title">🛏️ Active Admissions</span>
+        <a href="{{ url_for('admissions.list_admissions', status='Active') }}"
+           class="btn btn-secondary btn-sm">View All</a>
+      </div>
+      {% if recent_admits %}
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Ward</th>
+                <th>Department</th>
+                <th>Admitted</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in recent_admits %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('patients.patient_detail', patient_id=a.patient_id) }}">
+                    {{ a.patient }}
+                  </a>
+                </td>
+                <td style="font-family:var(--mono); font-size:12px;">
+                  {{ a.ward or '—' }}
+                  {% if a.bed_no %}/ {{ a.bed_no }}{% endif %}
+                </td>
+                <td class="text-muted">{{ a.department }}</td>
+                <td style="font-size:12px; color:var(--muted);">
+                  {{ a.admission_date.strftime('%d %b') if a.admission_date else '—' }}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="text-align:center; padding:30px 0; color:var(--muted);">
+          <div style="font-size:32px; margin-bottom:8px;">🛏️</div>
+          <div>No active admissions.</div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Low Stock Medicines -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-header">
+        <span class="card-title">⚠️ Low Stock Medicines</span>
+        <a href="{{ url_for('pharmacy.medicines') }}"
+           class="btn btn-secondary btn-sm">Pharmacy</a>
+      </div>
+      {% if low_stock %}
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Medicine</th>
+                <th>Stock</th>
+                <th>Reorder At</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for m in low_stock %}
+              <tr>
+                <td>{{ m.name }}</td>
+                <td>
+                  <span class="badge badge-red">
+                    {{ m.stock_qty }} {{ m.unit }}
+                  </span>
+                </td>
+                <td style="font-size:12px; color:var(--muted);">
+                  {{ m.reorder_lvl }} {{ m.unit }}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="text-align:center; padding:30px 0; color:var(--muted);">
+          <div style="font-size:32px; margin-bottom:8px;">✅</div>
+          <div>All medicines are sufficiently stocked.</div>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+<!-- ══════════════════════════════════════════
+     DOCTOR DASHBOARD
+══════════════════════════════════════════════ -->
+{% else %}
+
+  <div class="page-header">
+    <div>
+      <h1>Welcome, {{ current_user.full_name }} 👋</h1>
+      <p>Your patient summary for today.</p>
+    </div>
+  </div>
+
+  <!-- Doctor Stat Cards -->
+  <div class="stats-grid">
+
+    <div class="stat-card" style="border-top: 3px solid var(--accent);">
+      <div class="stat-label">My Appointments</div>
+      <div class="stat-value">{{ stats.my_appointments }}</div>
+      <div class="stat-sub">Total scheduled</div>
+    </div>
+
+    <div class="stat-card" style="border-top: 3px solid var(--accent2);">
+      <div class="stat-label">Active Admissions</div>
+      <div class="stat-value">{{ stats.my_admissions }}</div>
+      <div class="stat-sub">Under my care</div>
+    </div>
+
+    <div class="stat-card" style="border-top: 3px solid var(--accent3);">
+      <div class="stat-label">Lab Tests</div>
+      <div class="stat-value">{{ stats.my_lab_tests }}</div>
+      <div class="stat-sub">Ordered by me</div>
+    </div>
+
+    <div class="stat-card" style="border-top: 3px solid #8b5cf6;">
+      <div class="stat-label">Prescriptions</div>
+      <div class="stat-value">{{ stats.my_prescriptions }}</div>
+      <div class="stat-sub">Written by me</div>
+    </div>
+
+  </div>
+
+  <!-- Row 1: My Appointments + My Admissions -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+
+    <!-- My Appointments -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-header">
+        <span class="card-title">📅 My Appointments</span>
+        <a href="{{ url_for('appointments.list_appointments') }}"
+           class="btn btn-secondary btn-sm">View All</a>
+      </div>
+      {% if my_appts %}
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in my_appts %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('patients.patient_detail', patient_id=a.patient_id) }}">
+                    {{ a.patient }}
+                  </a>
+                </td>
+                <td style="font-size:12px; color:var(--muted);">
+                  {{ a.appt_date }}
+                </td>
+                <td style="font-family:var(--mono); font-size:12px;">
+                  {{ a.appt_time }}
+                </td>
+                <td>{{ a.status | status_badge | safe }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="text-align:center; padding:30px 0; color:var(--muted);">
+          <div style="font-size:32px; margin-bottom:8px;">📭</div>
+          <div>No appointments found.</div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- My Admissions -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-header">
+        <span class="card-title">🛏️ My Admitted Patients</span>
+        <a href="{{ url_for('admissions.list_admissions') }}"
+           class="btn btn-secondary btn-sm">View All</a>
+      </div>
+      {% if my_admits %}
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Ward / Bed</th>
+                <th>Diagnosis</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in my_admits %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('patients.patient_detail', patient_id=a.patient_id) }}">
+                    {{ a.patient }}
+                  </a>
+                </td>
+                <td style="font-family:var(--mono); font-size:12px;">
+                  {{ a.ward or '—' }}
+                  {% if a.bed_no %}/ {{ a.bed_no }}{% endif %}
+                </td>
+                <td class="text-muted" style="font-size:12px;">
+                  {{ (a.diagnosis or '—')[:30] }}
+                  {% if a.diagnosis and a.diagnosis|length > 30 %}…{% endif %}
+                </td>
+                <td>{{ a.status | status_badge | safe }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="text-align:center; padding:30px 0; color:var(--muted);">
+          <div style="font-size:32px; margin-bottom:8px;">🛏️</div>
+          <div>No active admissions under your care.</div>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Row 2: My Lab Tests + My Prescriptions -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+
+    <!-- My Lab Tests -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-header">
+        <span class="card-title">🔬 My Lab Tests</span>
+        <a href="{{ url_for('lab.list_tests') }}"
+           class="btn btn-secondary btn-sm">View All</a>
+      </div>
+      {% if my_tests %}
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Test</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for t in my_tests %}
+              <tr>
+                <td>{{ t.patient }}</td>
+                <td style="font-size:12px;">{{ t.test_name }}</td>
+                <td>{{ t.status | status_badge | safe }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="text-align:center; padding:30px 0; color:var(--muted);">
+          <div style="font-size:32px; margin-bottom:8px;">🔬</div>
+          <div>No lab tests ordered.</div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- My Prescriptions -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-header">
+        <span class="card-title">💊 My Prescriptions</span>
+        <a href="{{ url_for('pharmacy.prescriptions') }}"
+           class="btn btn-secondary btn-sm">View All</a>
+      </div>
+      {% if my_rx %}
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Medicine</th>
+                <th>Qty</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in my_rx %}
+              <tr>
+                <td>{{ r.patient }}</td>
+                <td style="font-size:12px;">{{ r.medicine }}</td>
+                <td style="font-family:var(--mono); font-size:12px;">
+                  {{ r.quantity }}
+                </td>
+                <td>{{ r.status | status_badge | safe }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="text-align:center; padding:30px 0; color:var(--muted);">
+          <div style="font-size:32px; margin-bottom:8px;">💊</div>
+          <div>No prescriptions written.</div>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+{% endif %}
+{% endblock %}

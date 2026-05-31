@@ -1,0 +1,134 @@
+<!-- hms_web/templates/users/list.html -->
+{% extends "base.html" %}
+{% block title %}User Management — HMS{% endblock %}
+{% block topbar_title %}User Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>User Accounts</h1>
+    <p>Manage all system users — admins, doctors, nurses, receptionists</p>
+  </div>
+  <a href="{{ url_for('users.new_user') }}" class="btn btn-primary">
+    + Create New User
+  </a>
+</div>
+
+<!-- Summary cards -->
+<div class="stats-grid" style="grid-template-columns:repeat(4,1fr);">
+  {% set role_counts = {} %}
+  {% for u in users %}
+    {% if u.role not in role_counts %}
+      {% set _ = role_counts.update({u.role: 0}) %}
+    {% endif %}
+  {% endfor %}
+
+  {% set admins       = users | selectattr('role','equalto','admin')        | list %}
+  {% set doctors      = users | selectattr('role','equalto','doctor')       | list %}
+  {% set nurses       = users | selectattr('role','equalto','nurse')        | list %}
+  {% set receptions   = users | selectattr('role','equalto','receptionist') | list %}
+
+  <div class="stat-card" style="border-top:3px solid var(--accent4);">
+    <div class="stat-label">Admins</div>
+    <div class="stat-value">{{ admins | length }}</div>
+  </div>
+  <div class="stat-card" style="border-top:3px solid var(--accent);">
+    <div class="stat-label">Doctors</div>
+    <div class="stat-value">{{ doctors | length }}</div>
+  </div>
+  <div class="stat-card" style="border-top:3px solid var(--accent2);">
+    <div class="stat-label">Nurses</div>
+    <div class="stat-value">{{ nurses | length }}</div>
+  </div>
+  <div class="stat-card" style="border-top:3px solid var(--accent3);">
+    <div class="stat-label">Receptionists</div>
+    <div class="stat-value">{{ receptions | length }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Full Name</th>
+          <th>Role</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td style="font-family:var(--mono); font-size:12px; color:var(--muted);">
+            #{{ u.user_id }}
+          </td>
+          <td style="font-family:var(--mono); font-size:13px; color:var(--accent);">
+            {{ u.username }}
+          </td>
+          <td style="font-weight:600;">{{ u.full_name }}</td>
+          <td>
+            <span class="badge
+              {% if u.role == 'admin' %}badge-red
+              {% elif u.role == 'doctor' %}badge-blue
+              {% elif u.role == 'nurse' %}badge-green
+              {% else %}badge-amber{% endif %}">
+              {% if u.role == 'admin' %}👑
+              {% elif u.role == 'doctor' %}👨‍⚕️
+              {% elif u.role == 'nurse' %}🩺
+              {% else %}🧑‍💼{% endif %}
+              {{ u.role }}
+            </span>
+          </td>
+          <td style="font-size:12px; color:var(--muted);">
+            {{ u.email or '—' }}
+          </td>
+          <td style="font-family:var(--mono); font-size:12px; color:var(--muted);">
+            {{ u.phone or '—' }}
+          </td>
+          <td>
+            {% if u.is_active %}
+              <span class="badge badge-green">Active</span>
+            {% else %}
+              <span class="badge badge-red">Disabled</span>
+            {% endif %}
+          </td>
+          <td style="font-size:12px; color:var(--muted);">
+            {{ u.created_at.strftime('%d %b %Y') if u.created_at else '—' }}
+          </td>
+          <td>
+            <div class="flex gap-2">
+              <!-- Reset Password -->
+              <a href="{{ url_for('users.reset_password', user_id=u.user_id) }}"
+                 class="btn btn-secondary btn-sm">🔑 Reset</a>
+
+              <!-- Enable / Disable — cannot disable self -->
+              {% if u.user_id != current_user.user_id %}
+              <form method="POST"
+                    action="{{ url_for('users.toggle_user', user_id=u.user_id) }}"
+                    style="display:inline;"
+                    onsubmit="return confirm('{{ 'Disable' if u.is_active else 'Enable' }} {{ u.username }}?')">
+                <input type="hidden" name="is_active"
+                       value="{{ '1' if u.is_active else '0' }}" />
+                <button type="submit"
+                        class="btn btn-sm {{ 'btn-danger' if u.is_active else 'btn-success' }}">
+                  {{ '🔒 Disable' if u.is_active else '🔓 Enable' }}
+                </button>
+              </form>
+              {% else %}
+              <span style="font-size:11px; color:var(--muted);">You</span>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Operation Theatre — HMS{% endblock %}
+{% block topbar_title %}Operation Theatre{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div><h1>Operation Theatre</h1><p>OT bookings and schedules</p></div>
+  {% if current_user.role == 'admin' %}
+  <a href="{{ url_for('ot.new_ot_booking') }}" class="btn btn-primary">+ New OT Booking</a>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:0;">
+    {% for s in ['','Scheduled','Completed','Cancelled','Postponed'] %}
+    <a href="{{ url_for('ot.list_ot', status=s) }}"
+       class="btn btn-sm {{ 'btn-primary' if status_filter==s else 'btn-secondary' }}">
+      {{ s if s else 'All' }}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card">
+  {% if bookings %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>OT ID</th><th>Patient</th><th>Surgeon</th><th>OT No</th>
+          <th>Date</th><th>Time</th><th>Procedure</th>
+          <th>Anesthesia</th><th>Duration</th><th>Status</th>
+          {% if current_user.role=='admin' %}<th>Update</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in bookings %}
+        <tr>
+          <td style="font-family:var(--mono); font-size:12px;">#{{ o.ot_id }}</td>
+          <td>
+            <a href="{{ url_for('patients.patient_detail', patient_id=o.patient_id) }}"
+               style="font-weight:600;">{{ o.patient }}</a>
+          </td>
+          <td class="text-muted">{{ o.surgeon }}</td>
+          <td style="font-family:var(--mono); font-size:12px; color:var(--accent);">
+            {{ o.ot_no }}
+          </td>
+          <td style="font-size:12px;">{{ o.scheduled_date }}</td>
+          <td style="font-family:var(--mono); font-size:12px;">{{ o.scheduled_time }}</td>
+          <td style="font-size:12px;">{{ o.procedure_name }}</td>
+          <td><span class="badge badge-blue">{{ o.anesthesia }}</span></td>
+          <td style="font-family:var(--mono); font-size:12px;">{{ o.duration_hrs }}h</td>
+          <td>{{ o.status | status_badge | safe }}</td>
+          {% if current_user.role == 'admin' %}
+          <td>
+            <form method="POST"
+                  action="{{ url_for('ot.update_status', ot_id=o.ot_id) }}"
+                  style="display:flex; gap:4px;">
+              <select name="status" style="width:120px; padding:4px 8px; font-size:12px;">
+                {% for s in ['Scheduled','Completed','Cancelled','Postponed'] %}
+                <option value="{{ s }}" {{ 'selected' if o.status==s }}>{{ s }}</option>
+                {% endfor %}
+              </select>
+              <button class="btn btn-primary btn-sm">✓</button>
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center; padding:48px 0; color:var(--muted);">
+    <div style="font-size:40px; margin-bottom:10px;">🩺</div>
+    <div>No OT bookings found.</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

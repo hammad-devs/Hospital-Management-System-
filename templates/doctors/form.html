@@ -1,0 +1,159 @@
+<!-- hms_web/templates/doctors/form.html -->
+{% extends "base.html" %}
+{% block title %}Add Doctor — HMS{% endblock %}
+{% block topbar_title %}Add Doctor{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Add New Doctor</h1>
+    <p>Link a user account and fill in professional details.</p>
+  </div>
+  <a href="{{ url_for('doctors.list_doctors') }}" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="card">
+  <form method="POST" action="{{ url_for('doctors.new_doctor') }}" novalidate>
+
+    <!-- User account section -->
+    <div style="margin-bottom:24px;">
+      <div style="font-size:12px; font-weight:700; color:var(--muted);
+                  text-transform:uppercase; letter-spacing:.08em;
+                  margin-bottom:14px; padding-bottom:8px;
+                  border-bottom:1px solid var(--border);">
+        User Account
+      </div>
+
+      <div class="form-grid" style="margin-bottom:14px;">
+        <div class="form-group">
+          <label>Account Type</label>
+          <select id="action" name="action" onchange="toggleUserForm()">
+            <option value="existing">Link Existing User</option>
+            <option value="new_user">Create New User</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Existing user -->
+      <div id="existing-user-section" class="form-grid">
+        <div class="form-group">
+          <label for="user_id">Select Doctor User *</label>
+          <select id="user_id" name="user_id">
+            <option value="">— Select user —</option>
+            {% for u in available_users %}
+            <option value="{{ u.user_id }}">{{ u.full_name }} ({{ u.username }})</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- New user fields -->
+      <div id="new-user-section" style="display:none;">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="username">Username *</label>
+            <input type="text" id="username" name="username"
+                   placeholder="dr_username" />
+          </div>
+          <div class="form-group">
+            <label for="full_name">Full Name *</label>
+            <input type="text" id="full_name" name="full_name"
+                   placeholder="Dr. Full Name" />
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email"
+                   placeholder="doctor@hospital.com" />
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="text" id="phone" name="phone"
+                   placeholder="03XXXXXXXXX" />
+          </div>
+          <div class="form-group">
+            <label for="password">Password *</label>
+            <input type="password" id="password" name="password"
+                   placeholder="Min 8 characters" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Professional details -->
+    <div style="margin-bottom:28px;">
+      <div style="font-size:12px; font-weight:700; color:var(--muted);
+                  text-transform:uppercase; letter-spacing:.08em;
+                  margin-bottom:14px; padding-bottom:8px;
+                  border-bottom:1px solid var(--border);">
+        Professional Details
+      </div>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="dept_id">Department *</label>
+          <select id="dept_id" name="dept_id" required>
+            <option value="">— Select Department —</option>
+            {% for d in depts %}
+            <option value="{{ d.dept_id }}">{{ d.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="specialization">Specialization</label>
+          <input type="text" id="specialization" name="specialization"
+                 placeholder="e.g. Interventional Cardiology" />
+        </div>
+
+        <div class="form-group">
+          <label for="qualification">Qualification</label>
+          <input type="text" id="qualification" name="qualification"
+                 placeholder="e.g. MBBS, FCPS" />
+        </div>
+
+        <div class="form-group">
+          <label for="experience">Years of Experience</label>
+          <input type="number" id="experience" name="experience"
+                 min="0" value="0" />
+        </div>
+
+        <div class="form-group">
+          <label for="license_no">Medical License No *</label>
+          <input type="text" id="license_no" name="license_no"
+                 placeholder="LIC-XXXXXX" required />
+        </div>
+
+        <div class="form-group">
+          <label for="fee">Consultation Fee (PKR)</label>
+          <input type="number" id="fee" name="fee"
+                 min="0" step="50" value="500" />
+        </div>
+
+        <div class="form-group">
+          <label for="joined_date">Joining Date</label>
+          <input type="date" id="joined_date" name="joined_date" />
+        </div>
+
+      </div>
+    </div>
+
+    <div class="flex gap-2">
+      <button type="submit" class="btn btn-primary">✅ Add Doctor</button>
+      <a href="{{ url_for('doctors.list_doctors') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function toggleUserForm() {
+    const action = document.getElementById('action').value;
+    document.getElementById('existing-user-section').style.display =
+      action === 'existing' ? 'grid' : 'none';
+    document.getElementById('new-user-section').style.display =
+      action === 'new_user' ? 'block' : 'none';
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Laboratory — HMS{% endblock %}
+{% block topbar_title %}Laboratory{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div><h1>Laboratory</h1><p>Test orders and results</p></div>
+  <a href="{{ url_for('lab.new_test') }}" class="btn btn-primary">+ Order Test</a>
+</div>
+
+<div class="card">
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    {% for s in ['','Pending','In Progress','Completed','Cancelled'] %}
+    <a href="{{ url_for('lab.list_tests', status=s) }}"
+       class="btn btn-sm {{ 'btn-primary' if status_filter==s else 'btn-secondary' }}">
+      {{ s if s else 'All' }}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card">
+  {% if tests %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Patient</th><th>Test</th><th>Ordered By</th>
+          <th>Ordered At</th><th>Result</th><th>Status</th>
+          <th>Update Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tests %}
+        <tr>
+          <td style="font-family:var(--mono); font-size:12px;">#{{ t.test_id }}</td>
+          <td>
+            <a href="{{ url_for('patients.patient_detail', patient_id=t.patient_id) }}"
+               style="font-weight:600;">{{ t.patient }}</a>
+            <div style="font-size:11px; color:var(--muted);">{{ t.patient_code }}</div>
+          </td>
+          <td style="font-size:13px;">{{ t.test_name }}</td>
+          <td class="text-muted">{{ t.ordered_by }}</td>
+          <td style="font-size:12px; color:var(--muted);">{{ t.ordered_at }}</td>
+          <td style="font-size:12px;">{{ t.result or '—' }}</td>
+          <td>{{ t.status | status_badge | safe }}</td>
+          <td>
+            {% if t.status in ['Pending','In Progress'] %}
+            <form method="POST"
+                  action="{{ url_for('lab.update_result', test_id=t.test_id) }}"
+                  style="display:flex; gap:4px; align-items:center;">
+              <input type="text" name="result"
+                     placeholder="Result…"
+                     style="width:120px; padding:4px 8px; font-size:12px;" />
+              <select name="status"
+                      style="width:110px; padding:4px 8px; font-size:12px;">
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+              <button class="btn btn-primary btn-sm">✓</button>
+            </form>
+            {% else %}
+            <span class="text-muted" style="font-size:12px;">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center; padding:48px 0; color:var(--muted);">
+    <div style="font-size:40px; margin-bottom:10px;">🔬</div>
+    <div>No lab tests found.</div>
+    <a href="{{ url_for('lab.new_test') }}" class="btn btn-primary mt-2">Order Test</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

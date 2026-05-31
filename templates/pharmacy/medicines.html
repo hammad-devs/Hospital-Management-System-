@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Medicines — HMS{% endblock %}
+{% block topbar_title %}Pharmacy — Medicines{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div><h1>Medicines</h1><p>Stock management</p></div>
+  <div class="flex gap-2">
+    {% if current_user.role == 'admin' %}
+    <a href="{{ url_for('pharmacy.new_medicine') }}" class="btn btn-primary">+ Add Medicine</a>
+    {% endif %}
+    <a href="{{ url_for('pharmacy.prescriptions') }}" class="btn btn-secondary">
+      💊 Prescriptions
+    </a>
+  </div>
+</div>
+
+{% if low_stock %}
+<div class="card" style="border-left:4px solid var(--accent3); margin-bottom:16px;">
+  <div class="card-header">
+    <span class="card-title" style="color:var(--accent3);">
+      ⚠️ Low Stock Alert — {{ low_stock|length }} item(s)
+    </span>
+  </div>
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    {% for m in low_stock %}
+    <span class="badge badge-amber">{{ m.name }} ({{ m.stock_qty }} left)</span>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Medicine</th><th>Category</th><th>Stock</th>
+          <th>Unit</th><th>Unit Price</th><th>Reorder At</th>
+          {% if current_user.role == 'admin' %}<th>Adjust Stock</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in medicines %}
+        <tr>
+          <td style="font-family:var(--mono); font-size:12px;">#{{ m.medicine_id }}</td>
+          <td style="font-weight:600;">{{ m.name }}</td>
+          <td class="text-muted">{{ m.category or '—' }}</td>
+          <td>
+            <span class="badge {{ 'badge-red' if m.stock_qty <= m.reorder_lvl else 'badge-green' }}">
+              {{ m.stock_qty }}
+            </span>
+          </td>
+          <td class="text-muted">{{ m.unit }}</td>
+          <td style="font-family:var(--mono); font-size:12px;">
+            {{ m.unit_price | currency }}
+          </td>
+          <td style="font-size:12px; color:var(--muted);">{{ m.reorder_lvl }}</td>
+          {% if current_user.role == 'admin' %}
+          <td>
+            <form method="POST"
+                  action="{{ url_for('pharmacy.adjust_stock', medicine_id=m.medicine_id) }}"
+                  style="display:flex; gap:4px; align-items:center;">
+              <input type="number" name="qty_change" value="0"
+                     style="width:70px; padding:4px 8px; font-size:12px;" />
+              <button class="btn btn-primary btn-sm">✓</button>
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

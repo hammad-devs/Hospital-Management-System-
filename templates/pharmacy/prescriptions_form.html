@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}New Prescription — HMS{% endblock %}
+{% block topbar_title %}New Prescription{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div><h1>Write Prescription</h1></div>
+  <a href="{{ url_for('pharmacy.prescriptions') }}" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="card" style="max-width:700px;">
+  <form method="POST" action="{{ url_for('pharmacy.new_prescription') }}" novalidate>
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Patient *</label>
+        <select name="patient_id" required>
+          <option value="">— Select Patient —</option>
+          {% for p in patients %}
+          <option value="{{ p.patient_id }}">{{ p.full_name }} ({{ p.patient_code }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {% if current_user.role != 'doctor' %}
+      <div class="form-group">
+        <label>Prescribing Doctor *</label>
+        <select name="doctor_id" required>
+          <option value="">— Select Doctor —</option>
+          {% for d in doctors %}
+          <option value="{{ d.doctor_id }}">{{ d.full_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <div class="form-group">
+        <label>Medicine *</label>
+        <select name="medicine_id" required>
+          <option value="">— Select Medicine —</option>
+          {% for m in medicines %}
+          <option value="{{ m.medicine_id }}">
+            {{ m.name }} (Stock: {{ m.stock_qty }} {{ m.unit }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Quantity *</label>
+        <input type="number" name="quantity" min="1" value="1" required />
+      </div>
+
+      <div class="form-group">
+        <label>Dosage</label>
+        <input type="text" name="dosage"
+               placeholder="e.g. 1 tablet twice daily" />
+      </div>
+
+      <div class="form-group full-width">
+        <label>Instructions</label>
+        <textarea name="instructions"
+                  placeholder="Additional instructions for patient…"></textarea>
+      </div>
+
+    </div>
+
+    <div class="flex gap-2 mt-2">
+      <button type="submit" class="btn btn-primary">💊 Write Prescription</button>
+      <a href="{{ url_for('pharmacy.prescriptions') }}"
+         class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

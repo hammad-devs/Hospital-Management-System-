@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}ICU — HMS{% endblock %}
+{% block topbar_title %}Intensive Care Unit{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div><h1>ICU</h1><p>Intensive Care Unit patients</p></div>
+  <div class="flex gap-2">
+    {% if current_user.role == 'admin' %}
+    <a href="{{ url_for('icu.new_icu_admission') }}" class="btn btn-primary">
+      + Admit to ICU
+    </a>
+    <a href="{{ url_for('icu.list_icu', show_all='1') }}"
+       class="btn btn-secondary">Show All</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">
+      {{ 'All ICU Records' if show_all else 'Active ICU Patients' }}
+      — {{ icu_patients|length }}
+    </span>
+  </div>
+  {% if icu_patients %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ICU ID</th><th>Patient</th><th>Bed</th><th>Doctor</th>
+          <th>Diagnosis</th><th>Ventilator</th><th>Nurse</th>
+          <th>Admitted</th><th>Status</th>
+          {% if current_user.role == 'admin' %}<th>Update</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in icu_patients %}
+        <tr>
+          <td style="font-family:var(--mono); font-size:12px;">#{{ i.icu_id }}</td>
+          <td>
+            <a href="{{ url_for('patients.patient_detail', patient_id=i.patient_id) }}"
+               style="font-weight:600;">{{ i.patient }}</a>
+            <div style="font-size:11px; color:var(--muted);">{{ i.patient_code }}</div>
+          </td>
+          <td style="font-family:var(--mono); font-size:12px;
+                     color:var(--accent);">{{ i.bed_no }}</td>
+          <td class="text-muted">{{ i.doctor }}</td>
+          <td style="font-size:12px;">{{ (i.diagnosis or '—')[:35] }}</td>
+          <td>
+            {% if i.ventilator %}
+              <span class="badge badge-red">Yes</span>
+            {% else %}
+              <span class="badge badge-gray">No</span>
+            {% endif %}
+          </td>
+          <td class="text-muted" style="font-size:12px;">{{ i.nurse_name or '—' }}</td>
+          <td style="font-size:12px; color:var(--muted);">{{ i.admitted_at }}</td>
+          <td>{{ i.status | status_badge | safe }}</td>
+          {% if current_user.role == 'admin' and i.status != 'Discharged' %}
+          <td>
+            <form method="POST"
+                  action="{{ url_for('icu.update_status', icu_id=i.icu_id) }}"
+                  style="display:flex; gap:4px;">
+              <select name="status" style="width:110px; padding:4px 8px; font-size:12px;">
+                <option value="Critical"  {{ 'selected' if i.status=='Critical' }}>Critical</option>
+                <option value="Stable"    {{ 'selected' if i.status=='Stable' }}>Stable</option>
+                <option value="Discharged">Discharge</option>
+              </select>
+              <button class="btn btn-primary btn-sm">✓</button>
+            </form>
+          </td>
+          {% elif current_user.role == 'admin' %}
+          <td><span class="text-muted" style="font-size:12px;">Discharged</span></td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center; padding:48px 0; color:var(--muted);">
+    <div style="font-size:40px; margin-bottom:10px;">🫀</div>
+    <div>No active ICU patients.</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

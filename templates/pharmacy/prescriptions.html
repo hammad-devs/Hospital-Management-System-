@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Prescriptions — HMS{% endblock %}
+{% block topbar_title %}Pharmacy — Prescriptions{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div><h1>Prescriptions</h1></div>
+  <div class="flex gap-2">
+    <a href="{{ url_for('pharmacy.new_prescription') }}" class="btn btn-primary">
+      + New Prescription
+    </a>
+    <a href="{{ url_for('pharmacy.medicines') }}" class="btn btn-secondary">
+      📦 Medicines
+    </a>
+  </div>
+</div>
+
+<div class="card">
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    {% for s in ['','Pending','Dispensed','Cancelled'] %}
+    <a href="{{ url_for('pharmacy.prescriptions', status=s) }}"
+       class="btn btn-sm {{ 'btn-primary' if status_filter==s else 'btn-secondary' }}">
+      {{ s if s else 'All' }}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card">
+  {% if prescriptions %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Patient</th><th>Doctor</th><th>Medicine</th>
+          <th>Qty</th><th>Dosage</th><th>Prescribed</th>
+          <th>Status</th>
+          {% if current_user.role == 'admin' %}<th>Action</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in prescriptions %}
+        <tr>
+          <td style="font-family:var(--mono); font-size:12px;">#{{ r.prescription_id }}</td>
+          <td>
+            <a href="{{ url_for('patients.patient_detail', patient_id=r.patient_id) }}"
+               style="font-weight:600;">{{ r.patient }}</a>
+          </td>
+          <td class="text-muted">{{ r.doctor }}</td>
+          <td style="font-size:13px;">{{ r.medicine }}</td>
+          <td style="font-family:var(--mono); font-size:12px;">{{ r.quantity }}</td>
+          <td style="font-size:12px; color:var(--muted);">{{ r.dosage or '—' }}</td>
+          <td style="font-size:12px; color:var(--muted);">{{ r.prescribed_at }}</td>
+          <td>{{ r.status | status_badge | safe }}</td>
+          {% if current_user.role == 'admin' %}
+          <td>
+            {% if r.status == 'Pending' %}
+            <form method="POST"
+                  action="{{ url_for('pharmacy.dispense', prescription_id=r.prescription_id) }}"
+                  onsubmit="return confirm('Dispense this prescription?')">
+              <button class="btn btn-success btn-sm">💊 Dispense</button>
+            </form>
+            {% else %}
+            <span class="text-muted" style="font-size:12px;">—</span>
+            {% endif %}
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center; padding:48px 0; color:var(--muted);">
+    <div style="font-size:40px; margin-bottom:10px;">💊</div>
+    <div>No prescriptions found.</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
