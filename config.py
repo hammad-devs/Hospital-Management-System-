@@ -14,7 +14,7 @@ class Config:
     DB_PORT     = int(os.getenv("DB_PORT", "3306"))
     DB_NAME     = os.getenv("DB_NAME",     "hospital_db")
     DB_USER     = os.getenv("DB_USER",     "root")
-    DB_PASSWORD = os.getenv("DB_PASSWORD", "8110166263343")  # ← change this
+    DB_PASSWORD = os.getenv("DB_PASSWORD", "Enter YouR Password Here")  # ← change this
 
     # ── Session ────────────────────────────────────────
     SESSION_TYPE       = "filesystem"
