@@ -10,6 +10,8 @@ role-based web application.
 pip install -r requirements.txt 
 
 ----
+# Add your MYSQL password in config.py
+----
 ## 🗂️ Complete Project Structure
 
 hms_web/
